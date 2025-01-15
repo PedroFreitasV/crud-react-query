@@ -3,6 +3,12 @@ import { useUsers, useAddUser, useDeleteUser } from '../hooks/useUsers';
 import '../index.css';
 import './styles.css';
 
+type User = {
+  id: string;
+  name: string;
+  email: string;
+};
+
 export const UserList: React.FC = () => {
   const { data: users, isLoading, isError } = useUsers();
   const addUser = useAddUser();
@@ -69,7 +75,7 @@ export const UserList: React.FC = () => {
       )}
 
       <ul className="user-list">
-        {users?.map((user) => (
+        {users?.map((user: User) => (
           <li key={user.id} className="user-item">
             <span>
               {user.name} ({user.email})
