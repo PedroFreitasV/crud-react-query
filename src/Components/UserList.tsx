@@ -3,8 +3,9 @@ import { useUsers, useAddUser, useDeleteUser } from '../hooks/useUsers';
 import '../index.css';
 import './styles.css';
 
+// Ajuste o tipo para refletir o que o backend retorna
 type User = {
-  id: string;
+  id: number; // Alterado para 'number' conforme o erro apontado
   name: string;
   email: string;
 };
@@ -43,7 +44,7 @@ export const UserList: React.FC = () => {
     }
   };
 
-  const handleDeleteUser = (id: string) => {
+  const handleDeleteUser = (id: number) => {
     deleteUser.mutate(id, {
       onSuccess: () => {
         setMessageType('success');
@@ -81,7 +82,7 @@ export const UserList: React.FC = () => {
               {user.name} ({user.email})
             </span>
             <button
-              onClick={() => handleDeleteUser(user.id)}
+              onClick={() => handleDeleteUser(user.id)} // Agora 'id' é do tipo correto
               disabled={deleteUser.isLoading}
               className="delete-button"
             >
@@ -114,3 +115,4 @@ export const UserList: React.FC = () => {
     </div>
   );
 };
+
