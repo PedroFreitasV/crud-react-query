@@ -1,29 +1,23 @@
 import React, { useState } from 'react';
-import { useMutation, useQueryClient } from 'react-query';
-import axios from 'axios';
+import { useAddUser } from '../hooks/useUsers';
 import { useNavigate } from 'react-router-dom';
-
-const createUser = async (user: { name: string; email: string }) => {
-  const { data } = await axios.post('https://jsonplaceholder.typicode.com/users', user);
-  return { ...user, id: data.id || Date.now() }; // Adiciona um ID falso se a API não retornar um.
-};
 
 function UserForm() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const queryClient = useQueryClient();
+  const addUserMutation = useAddUser();
   const navigate = useNavigate();
-
-  const mutation = useMutation(createUser, {
-    onSuccess: (newUser) => {
-      queryClient.setQueryData('users', (old: any) => [...(old || []), newUser]); // Adiciona o novo usuário ao cache.
-      navigate('/');
-    },
-  });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    mutation.mutate({ name, email });
+    addUserMutation.mutate(
+      { name, email },
+      {
+        onSuccess: () => {
+          navigate('/');
+        },
+      }
+    );
   };
 
   return (
@@ -50,11 +44,11 @@ function UserForm() {
             className="form-input"
           />
         </div>
-        <button type="submit" className="form-button" disabled={mutation.isLoading}>
-          {mutation.isLoading ? 'Creating...' : 'Create'}
+        <button type="submit" className="form-button" disabled={addUserMutation.isLoading}>
+          {addUserMutation.isLoading ? 'Creating...' : 'Create'}
         </button>
       </form>
-      {mutation.isError && <p className="error-message">Error: Unable to create user.</p>}
+      {addUserMutation.isError && <p className="error-message">Error: Unable to create user.</p>}
     </div>
   );
 }

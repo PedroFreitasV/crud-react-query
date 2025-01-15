@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useUsers, useAddUser, useDeleteUser } from '../hooks/useUsers';
 import '../index.css';
+import './styles.css';
 
 export const UserList: React.FC = () => {
   const { data: users, isLoading, isError } = useUsers();
@@ -9,46 +10,100 @@ export const UserList: React.FC = () => {
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [message, setMessage] = useState('');
+  const [messageType, setMessageType] = useState<'success' | 'error' | ''>('');
 
   const handleAddUser = (e: React.FormEvent) => {
     e.preventDefault();
-    addUser.mutate({ name, email });
-    setName('');
-    setEmail('');
+    if (name && email) {
+      addUser.mutate(
+        { name, email },
+        {
+          onSuccess: () => {
+            setName('');
+            setEmail('');
+            setMessageType('success');
+            setMessage('Usuário adicionado com sucesso!');
+          },
+          onError: () => {
+            setMessageType('error');
+            setMessage('Falha ao adicionar usuário.');
+          },
+        }
+      );
+    } else {
+      setMessageType('error');
+      setMessage('Por favor, preencha o nome e o email.');
+    }
   };
 
-  if (isLoading) return <p>Loading...</p>;
-  if (isError) return <p>Error loading users.</p>;
+  const handleDeleteUser = (id: string) => {
+    deleteUser.mutate(id, {
+      onSuccess: () => {
+        setMessageType('success');
+        setMessage('Usuário removido com sucesso!');
+      },
+      onError: () => {
+        setMessageType('error');
+        setMessage('Falha ao remover usuário.');
+      },
+    });
+  };
+
+  const clearMessage = () => {
+    setMessage('');
+    setMessageType('');
+  };
+
+  if (isLoading) return <p>Carregando usuários...</p>;
+  if (isError) return <p>Erro ao carregar usuários.</p>;
 
   return (
     <div className="container">
-      <h1>User List</h1>
-      <ul>
+      <h1>Lista de Usuários</h1>
+
+      {message && (
+        <div className={`message ${messageType}`} onClick={clearMessage}>
+          {message}
+        </div>
+      )}
+
+      <ul className="user-list">
         {users?.map((user) => (
-          <li key={user.id}>
+          <li key={user.id} className="user-item">
             <span>
               {user.name} ({user.email})
             </span>
-            <button onClick={() => deleteUser.mutate(user.id)}>Delete</button>
+            <button
+              onClick={() => handleDeleteUser(user.id)}
+              disabled={deleteUser.isLoading}
+              className="delete-button"
+            >
+              {deleteUser.isLoading ? 'Removendo...' : 'Remover'}
+            </button>
           </li>
         ))}
       </ul>
 
-      <h2>Add User</h2>
-      <form onSubmit={handleAddUser}>
+      <h2>Adicionar Usuário</h2>
+      <form onSubmit={handleAddUser} className="add-user-form">
         <input
           type="text"
-          placeholder="Name"
+          placeholder="Nome"
           value={name}
           onChange={(e) => setName(e.target.value)}
+          className="input"
         />
         <input
           type="email"
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          className="input"
         />
-        <button type="submit">Add</button>
+        <button type="submit" className="add-button" disabled={addUser.isLoading}>
+          {addUser.isLoading ? 'Adicionando...' : 'Adicionar'}
+        </button>
       </form>
     </div>
   );
